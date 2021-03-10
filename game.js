@@ -7,12 +7,6 @@ var gameStart = false
 
 var currentTime = new Date();
 
-//Looks to see if buttons are clicked and sends button id to various functions
-$(".btn").click(function (event) {
-    var userChosenColor = event.currentTarget.id
-    playerClick(userChosenColor)
-    userClickedPattern.push(userChosenColor)
-})
 
 //Looks for a keypress
 $(document).keydown(function(event) {
@@ -26,10 +20,53 @@ $(document).keydown(function(event) {
 
 })
 
+//Looks to see if buttons are clicked and sends button id to various functions
+$(".btn").click(function (event) {
+    var userChosenColor = event.currentTarget.id
+    playerClick(userChosenColor)
+    userClickedPattern.push(userChosenColor)
+    checkAnswer(userClickedPattern.length-1)
+})
+
+function startOver() {
+    gamePattern = []
+    userClickedPattern = []
+    gameStart = false
+    level = 0
+}
+
+
+
 //When the play clicks it will play the corosponding sound and animate the button
 function playerClick(color) {
     playColorSound(color);
     animatePress(color);
+}
+
+
+function checkAnswer(currentLevel) {
+    if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
+        console.log("Success")
+
+        if (userClickedPattern.length === gamePattern.length) {
+            setTimeout(function () {
+                userClickedPattern = []
+                nextSequence();
+            }, 1000)
+        }
+    }
+
+    else {
+        console.log("Wrong")
+        playColorSound("wrong")
+        $("body").addClass("game-over");
+        setTimeout(function () {
+            $("body").removeClass("game-over");
+        }, 200)
+
+        $("#level-title").text("Game Over. Press any Key to restart")
+        startOver();
+    }
 }
 
 
@@ -45,26 +82,24 @@ function animatePress(currentColor) {
 
 //Generates the next sequence
 function nextSequence() {
+    //Chose Random color and add it to the gamePattern array
     $("h1").text("Level " + level)
     var randomNumber = Math.floor(Math.random() * 4)
     var randomChosenColor = buttonColors[randomNumber]
     gamePattern.push(randomChosenColor)
     console.log(randomChosenColor + " was added to gamePattern")
     level++
-
-    showSequence(gamePattern);
+    //Show the user the generated pattern
+    setTimeout(function(){
+        showSequence(gamePattern);
+    }, 200)
 }
 
 //Shows what the current sequence to be copied by player is
 function showSequence(currentArray) {
-    for (i=0; i < currentArray.length; i++) {
-
-        console.log("This is loop number " + i);
-        console.log("The color returned in the array is " + currentArray[i]);
-        playColorSound(currentArray[i]);
-        animatePress(currentArray[i]);
-        
-    }
+    let newColor = currentArray.length - 1
+    playColorSound(currentArray[newColor]);
+    animatePress(currentArray[newColor]);
 }
 
 //The function that evaluates what id has been inputed and plays the corosponding sound
@@ -92,6 +127,12 @@ function playColorSound(color) {
                 var yellowSound = new Audio("sounds/yellow.mp3")
                 yellowSound.play();
                 console.log("Yellow Sound Played");
+            break;
+
+            case "wrong":
+                var wrongSound = new Audio("sounds/wrong.mp3")
+                wrongSound.play();
+                console.log("Wrong Sound Played");
             break;
 
             default:
